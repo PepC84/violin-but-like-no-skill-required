@@ -52,10 +52,12 @@ boolean leftReleased = false;
 int noteSelectTime = 0;
 int screenWidth = 1024;
 int screenHeight = 720;
-int intervalSelected;
-boolean noteInterval;
+int intervalSelected = -1;
+int  noteInterval = -1;
 String buttonSelected;
 String pitchNoteSelected;
+boolean placedNote;
+String highlightNote = "notDeclared";
 noteButton noteG3 = new noteButton(50 + noteRadius * 4,93 + noteRadius * 7 ,   "G3");
 noteButton noteA3 = new noteButton(50 + noteRadius * 8,93 + noteRadius * 6.5,  "A3");
 noteButton noteB3 = new noteButton(50 + noteRadius * 12,93 + noteRadius * 6,   "B3");
@@ -110,8 +112,8 @@ void setup() {
   treble = loadImage("gclef.png");
 }
 void draw() {
-
 background(255);
+
 fill(255);
 drawNoteSelect();
 stroke(0);
@@ -128,6 +130,12 @@ note.show(); rest.show();place.show();
 
 text("x: "+mouseX+" y: "+mouseY, 10, 15);
 
+if (placedNote == true) {
+ placedNote = false;
+   if(noteInterval >= 0 && intervalSelected >= 0 && checkEqualityString(pitchNoteSelected,"nil") == false && checkEqualityString(pitchNoteSelected,"notDeclared") == false) {
+     print("balz");
+   }
+}
 if (sendStringVar == true) {
   sendString(int(sendValue1),int(sendValue2),int(sendValue3));
 }
@@ -211,115 +219,25 @@ void mouseReleased() {
      leftPressed = false;
     } 
 }
+
 void drawNoteSelect() {
  strokeWeight(1.50);
  fill(255);
   if (mouseX > 50 - noteRadius * 2 && mouseY > 275 - noteRadius * 4 && mouseX < 50 + noteRadius * 2 && mouseY < 275 + noteRadius * 2) {
     stroke(100);
-    print("balls");
     if(mousePressed && mouseButton == LEFT)  {
      leftPressed = true;
      strokeWeight(2);
-    print("itch");
     if(leftRelease == true) {
       noStroke();
-      print("bruh");
      leftRelease = false;
     }
   }
   }
   rect(50 - noteRadius * 2,275 - noteRadius * 4 ,noteRadius * 4  , noteRadius * 6);
-stroke(0);
-strokeWeight(1);
-fill(0);
- 
- switch(noteSelectTime) {
-   case 6:
-   rect(50 - noteRadius/2,275 - noteRadius * 2,noteRadius,noteRadius/2);
-   break;
-   case 7: 
-   rect(50 - noteRadius/2,275 - noteRadius,noteRadius,noteRadius/2);
-   break;
-   case 8:
-   fill(255);
-   stroke(0);
-   line(50 - noteRadius/2,275 - noteRadius * 2, 50 + noteRadius/2, 275 - noteRadius * 2 + noteRadius/2);
-   fill(0);
-   line(50 - noteRadius/2,275 - noteRadius * 2, 50 + noteRadius/2, 275);
-   ellipse(50 + noteRadius/4,275 - noteRadius * 2 + noteRadius/4,6,6);
-   break;
-   case 9:
-   fill(255);
-   stroke(0);
-   line(50 - noteRadius/2, 275 - noteRadius * 2 + noteRadius/2, 50 + noteRadius/2,275 - noteRadius * 2);
-   fill(0);
-   line(50 - noteRadius/2, 275 , 50 + noteRadius/2,275 - noteRadius * 2);
-   ellipse(50 - noteRadius/4 ,275 - noteRadius * 2 + noteRadius/4,6,6);
-   break;
-   case 10:
-      fill(255);
-   stroke(0);
-   line(50 - noteRadius/2, 275 - noteRadius * 2 + noteRadius/2 + noteRadius/2, 50 + noteRadius/2,275 - noteRadius * 2 + noteRadius/2);
-   line(50 - noteRadius/2 + noteRadius/2, 275 - noteRadius * 3  + noteRadius/2 + noteRadius/2, 50 + noteRadius/2 + noteRadius/2,275 - noteRadius * 3 + noteRadius/2);
-   fill(0);
-   line(50 - noteRadius/2, 275 + noteRadius/2, 50 + noteRadius/2 + noteRadius/2,275 - noteRadius * 3 + noteRadius/2);
-   ellipse(50 - noteRadius/4 ,275 - noteRadius * 2 + noteRadius/4 + noteRadius/2,6,6); 
-   ellipse(50 - noteRadius/4 + noteRadius/2 ,275 - noteRadius * 3 + noteRadius/4  + noteRadius/2,6,6); 
-   break;
-   case 11: 
-    fill(255);
-   stroke(0);
-   line(50 - noteRadius, 275 - noteRadius * 2 + noteRadius/2 + noteRadius, 50 ,275 - noteRadius * 2 + noteRadius);
-   line(50 - noteRadius + noteRadius/2, 275 - noteRadius * 3  + noteRadius + noteRadius/2, 50 + noteRadius/2,275 - noteRadius * 3 + noteRadius);
-   line(50 - noteRadius/4 , 275 - noteRadius * 4  + noteRadius + noteRadius/2, 50 + noteRadius/2 + noteRadius/2,275 - noteRadius * 4 + noteRadius);
-   fill(0);
-   line(50 - noteRadius/2 - noteRadius/4, 275 + noteRadius, 50 + noteRadius ,275 - noteRadius * 3 );
-   ellipse(50,275 - noteRadius * 4 + noteRadius/4 + noteRadius + 6/2  ,6,6); 
-   ellipse(50 - noteRadius ,275 - noteRadius * 2 + noteRadius/4 + noteRadius + 6/2 ,6,6); 
-   ellipse(50 - noteRadius + noteRadius/2 ,275 - noteRadius * 3 + noteRadius/4  + noteRadius +  6/2  ,6,6); 
-   break;
-   case 0:
-    fill(255);
-    strokeWeight(2);
-    ellipse(50,275 - noteRadius,15,15);
-    break;
-   case 1:
-    fill(255);
-    rect(50 + noteRadius/2 - noteRadius/6,275 - 35,1,(noteRadius * 3)- noteRadius/2);
-    ellipse(50,275,15,15);
-    strokeWeight(2);
-    ellipse(50,275,12,12);
-   break;
-   case 2:
-    ellipse(50,275,15,15);
-    rect(50 + noteRadius/2 - noteRadius/6,275 - 35,1,(noteRadius * 3)- noteRadius/2);
-   break;
-   case 3: 
-    ellipse(50,275,15,15);
-    rect(50 + noteRadius/2 - noteRadius/6,275 - 35 - noteRadius/2,1,(noteRadius * 3));
-    strokeWeight(2);
-    line(50 + noteRadius/2 - noteRadius/6,275 - 35 - noteRadius/2,50 + noteRadius/2 - noteRadius/6 + noteRadius,275 - 35 + noteRadius * 2);
-   break;
-   case 4: 
-    ellipse(50,275,15,15);
-    rect(50 + noteRadius/2 - noteRadius/6,275 - 35 - noteRadius/2,1,(noteRadius * 3));
-    strokeWeight(2);
-    line(50 + noteRadius/2 - noteRadius/6,275 - 35 - noteRadius/2,50 + noteRadius/2 - noteRadius/6 + noteRadius,275 - 35 + noteRadius);
-    line(50 + noteRadius/2 - noteRadius/6,275 - 35 - noteRadius/2 + noteRadius/2,50 + noteRadius/2 - noteRadius/6 + noteRadius,275 - 35 + noteRadius + noteRadius/2);
-    line(50 + noteRadius/2 - noteRadius/6 + noteRadius,275 - 35 + noteRadius,50 + noteRadius/2 - noteRadius/6 + noteRadius,275 - 35 + noteRadius + noteRadius/2);
-   break;
-   case 5:
-    ellipse(50,275,15,15);
-    rect(50 + noteRadius/2 - noteRadius/6,275 - 35 - noteRadius/2,1,(noteRadius * 3));
-    strokeWeight(2);
-    line(50 + noteRadius/2 - noteRadius/6,275 - 35 - noteRadius/2,50 + noteRadius/2 - noteRadius/6 + noteRadius,275 - 35 + noteRadius);
-    line(50 + noteRadius/2 - noteRadius/6,275 - 35 - noteRadius/2 + noteRadius/2,50 + noteRadius/2 - noteRadius/6 + noteRadius,275 - 35 + noteRadius + noteRadius/2);
-    line(50 + noteRadius/2 - noteRadius/6,275 - 35 - noteRadius/2 + noteRadius/2 + noteRadius/2,50 + noteRadius/2 - noteRadius/6 + noteRadius,275 - 35 + noteRadius + noteRadius);
-    line(50 + noteRadius/2 - noteRadius/6 + noteRadius,275 - 35 + noteRadius,50 + noteRadius/2 - noteRadius/6 + noteRadius,275 - 35 + noteRadius + noteRadius);
-   break;
- }
-strokeWeight(1);
-fill(0);
+  if(intervalSelected >= 0 && noteInterval >= 0) {
+    displayNote(50,275);
+   }
 }
 class squareButton {
   int limitLeft;
@@ -373,28 +291,33 @@ class squareButton {
       buttonSelected = "1/32";
       break;
       case "rest":
-      noteInterval = false;
+      noteInterval = 2;
       break;
       case "note":
-      noteInterval = true;
+      noteInterval = 1;
+      break;
+      case "place":
+      placedNote = true;
       break;
      }
     }
   }
- if(intervalSelected >= 0) {
-  if(noteInterval == true) {
-  noteSelectTime = intervalSelected;
-    if(interval == "note") {
-  strokeWeight(3);
-    }
-  } else {
-    if(interval == "rest") {
-     strokeWeight(3); 
-    }
-  noteSelectTime = intervalSelected + 6;
-  
+//if(intervalSelected >= 0) {
+  if(noteInterval == 1) {
+    noteSelectTime = intervalSelected;
+    
+      if(interval == "note") {
+        strokeWeight(3);
+      }
+   } else if (noteInterval == 2) {
+    noteSelectTime = intervalSelected + 6;
+    
+      if(interval == "rest") {
+         strokeWeight(3); 
+      }
   }
-}
+//}
+
 if(intervalSelected >= 0) {
  if(buttonSelected == interval) {
   strokeWeight(3); 
@@ -448,6 +371,8 @@ class noteButton {
 
 void showNote() {
  fill(0); 
+ stroke(0);
+ strokeWeight(1);
   text(noteInfo,xpos - noteRadius/2,ypos + 20);
   if (dist(xpos,ypos, mouseX, mouseY) <= noteRadius) {
     stroke(100);
@@ -459,19 +384,52 @@ void showNote() {
     }
     if(leftRelease == true) {
       noStroke();
+      leftRelease = false;
+/*      if (noteInterval == 2) {
      fill(255,0,0); 
-     leftRelease = false;
-     pitchNoteSelected = noteInfo;
+     strokeWeight(3);
+     stroke(255,0,0);
+      }
+      */
+      pitchNoteSelected = noteInfo;
     }
   } 
-  if( noteInterval == true) {
-  if(intervalSelected >= -1 && pitchNoteSelected == noteInfo) {
+       switch(noteInterval) {
+     case 1:
+     if (pitchNoteSelected == noteInfo) {
+       highlightNote = noteInfo;
+     }
+     break;
+     case 2:
+     pitchNoteSelected = "rest";
+     fill(120); 
+     stroke(120);
+     strokeWeight(2);
+     highlightNote = "none";
+     break;
+     case -1:
+     if (pitchNoteSelected == noteInfo) {
+      highlightNote = noteInfo;
+     }
+     pitchNoteSelected = "notDeclared"; 
+     break;
+     case -2:
+     pitchNoteSelected = "nil";
+     highlightNote = "none";
+     break;
+    } 
+   
+  if(highlightNote.equals(noteInfo)) {
+    strokeWeight(3);
+  }
+/*  if( noteInterval == 1) {
+  if( pitchNoteSelected == noteInfo) {
 strokeWeight(3);
   } 
-  } else {
+  } else if (noteInterval == -1) {
    pitchNoteSelected = "none"; 
   }
-    
+*/
 
  ellipse(xpos,ypos,15,15);
  rect(xpos + noteRadius/2 - noteRadius/6,ypos - 35,1,(noteRadius * 3)- noteRadius/2);
@@ -479,4 +437,104 @@ fill(0);
 stroke(0);
 strokeWeight(1);
 }
+}
+void displayNote(int posx, int posy) {
+fill(0);
+stroke(0);
+strokeWeight(1);
+  switch(noteSelectTime) {
+   case 6:
+   rect(posx - noteRadius/2,posy - noteRadius * 2,noteRadius,noteRadius/2);
+   break;
+   case 7: 
+   rect(posx - noteRadius/2,posy - noteRadius,noteRadius,noteRadius/2);
+   break;
+   case 8:
+   fill(255);
+   stroke(0);
+   line(posx - noteRadius/2,posy - noteRadius * 2, posx + noteRadius/2, posy - noteRadius * 2 + noteRadius/2);
+   fill(0);
+   line(posx - noteRadius/2,posy - noteRadius * 2, posx + noteRadius/2, posy);
+   ellipse(posx + noteRadius/4,posy - noteRadius * 2 + noteRadius/4,6,6);
+   break;
+   case 9:
+   fill(255);
+   stroke(0);
+   line(posx - noteRadius/2, posy - noteRadius * 2 + noteRadius/2, posx + noteRadius/2,posy - noteRadius * 2);
+   fill(0);
+   line(posx - noteRadius/2, posy , posx + noteRadius/2,posy - noteRadius * 2);
+   ellipse(posx - noteRadius/4 ,posy - noteRadius * 2 + noteRadius/4,6,6);
+   break;
+   case 10:
+      fill(255);
+   stroke(0);
+   line(posx - noteRadius/2, posy - noteRadius * 2 + noteRadius/2 + noteRadius/2, posx + noteRadius/2,posy - noteRadius * 2 + noteRadius/2);
+   line(posx - noteRadius/2 + noteRadius/2, posy - noteRadius * 3  + noteRadius/2 + noteRadius/2, posx + noteRadius/2 + noteRadius/2,posy - noteRadius * 3 + noteRadius/2);
+   fill(0);
+   line(posx - noteRadius/2, posy + noteRadius/2, posx + noteRadius/2 + noteRadius/2,posy - noteRadius * 3 + noteRadius/2);
+   ellipse(posx - noteRadius/4 ,posy - noteRadius * 2 + noteRadius/4 + noteRadius/2,6,6); 
+   ellipse(posx - noteRadius/4 + noteRadius/2 ,posy - noteRadius * 3 + noteRadius/4  + noteRadius/2,6,6); 
+   break;
+   case 11: 
+    fill(255);
+   stroke(0);
+   line(posx - noteRadius, posy - noteRadius * 2 + noteRadius/2 + noteRadius, posx ,posy - noteRadius * 2 + noteRadius);
+   line(posx - noteRadius + noteRadius/2, posy - noteRadius * 3  + noteRadius + noteRadius/2, posx + noteRadius/2,posy - noteRadius * 3 + noteRadius);
+   line(posx - noteRadius/4 , posy - noteRadius * 4  + noteRadius + noteRadius/2, posx + noteRadius/2 + noteRadius/2,posy - noteRadius * 4 + noteRadius);
+   fill(0);
+   line(posx - noteRadius/2 - noteRadius/4, posy + noteRadius, posx + noteRadius ,posy - noteRadius * 3 );
+   ellipse(posx,posy - noteRadius * 4 + noteRadius/4 + noteRadius + 6/2  ,6,6); 
+   ellipse(posx - noteRadius ,posy - noteRadius * 2 + noteRadius/4 + noteRadius + 6/2 ,6,6); 
+   ellipse(posx - noteRadius + noteRadius/2 ,posy - noteRadius * 3 + noteRadius/4  + noteRadius +  6/2  ,6,6); 
+   break;
+   case 0:
+    fill(255);
+    strokeWeight(2);
+    ellipse(posx,posy - noteRadius,15,15);
+    break;
+   case 1:
+    fill(255);
+    rect(posx + noteRadius/2 - noteRadius/6,posy - 35,1,(noteRadius * 3)- noteRadius/2);
+    ellipse(posx,posy,15,15);
+    strokeWeight(2);
+    ellipse(posx,posy,12,12);
+   break;
+   case 2:
+    ellipse(posx,posy,15,15);
+    rect(posx + noteRadius/2 - noteRadius/6,posy - 35,1,(noteRadius * 3)- noteRadius/2);
+   break;
+   case 3: 
+    ellipse(posx,posy,15,15);
+    rect(posx + noteRadius/2 - noteRadius/6,posy - 35 - noteRadius/2,1,(noteRadius * 3));
+    strokeWeight(2);
+    line(posx + noteRadius/2 - noteRadius/6,posy - 35 - noteRadius/2,posx + noteRadius/2 - noteRadius/6 + noteRadius,posy - 35 + noteRadius * 2);
+   break;
+   case 4: 
+    ellipse(posx,posy,15,15);
+    rect(posx + noteRadius/2 - noteRadius/6,posy - 35 - noteRadius/2,1,(noteRadius * 3));
+    strokeWeight(2);
+    line(posx + noteRadius/2 - noteRadius/6,posy - 35 - noteRadius/2,posx + noteRadius/2 - noteRadius/6 + noteRadius,posy - 35 + noteRadius);
+    line(posx + noteRadius/2 - noteRadius/6,posy - 35 - noteRadius/2 + noteRadius/2,posx + noteRadius/2 - noteRadius/6 + noteRadius,posy - 35 + noteRadius + noteRadius/2);
+    line(posx + noteRadius/2 - noteRadius/6 + noteRadius,posy - 35 + noteRadius,posx + noteRadius/2 - noteRadius/6 + noteRadius,posy - 35 + noteRadius + noteRadius/2);
+   break;
+   case 5:
+    ellipse(posx,posy,15,15);
+    rect(posx + noteRadius/2 - noteRadius/6,posy - 35 - noteRadius/2,1,(noteRadius * 3));
+    strokeWeight(2);
+    line(posx + noteRadius/2 - noteRadius/6,posy - 35 - noteRadius/2,posx + noteRadius/2 - noteRadius/6 + noteRadius,posy - 35 + noteRadius);
+    line(posx + noteRadius/2 - noteRadius/6,posy - 35 - noteRadius/2 + noteRadius/2,posx + noteRadius/2 - noteRadius/6 + noteRadius,posy - 35 + noteRadius + noteRadius/2);
+    line(posx + noteRadius/2 - noteRadius/6,posy - 35 - noteRadius/2 + noteRadius/2 + noteRadius/2,posx + noteRadius/2 - noteRadius/6 + noteRadius,posy - 35 + noteRadius + noteRadius);
+    line(posx + noteRadius/2 - noteRadius/6 + noteRadius,posy - 35 + noteRadius,posx + noteRadius/2 - noteRadius/6 + noteRadius,posy - 35 + noteRadius + noteRadius);
+   break;
+ } 
+ fill(0);
+stroke(0);
+strokeWeight(1);
+}
+boolean checkEqualityString(String a, String b) {
+  if(a.equals(b)) {
+   return true; 
+  } else {
+   return false; 
+  }
 }
