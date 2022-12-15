@@ -55,9 +55,16 @@ int screenHeight = 720;
 int intervalSelected = -1;
 int  noteInterval = -1;
 String buttonSelected;
-String pitchNoteSelected;
-boolean placedNote;
-String highlightNote = "notDeclared";
+String pitchNoteSelected = "nil";
+boolean placedNote = false;
+String highlightNote = "nil";
+int idPrint = 1;
+String notePrint = "null";
+String durationPrint = "null";
+int idLast = 0;
+int idSelected = 1;
+int invalidPlaceRequest = 255;
+int latestRowCount;
 noteButton noteG3 = new noteButton(50 + noteRadius * 4,93 + noteRadius * 7 ,   "G3");
 noteButton noteA3 = new noteButton(50 + noteRadius * 8,93 + noteRadius * 6.5,  "A3");
 noteButton noteB3 = new noteButton(50 + noteRadius * 12,93 + noteRadius * 6,   "B3");
@@ -90,6 +97,8 @@ squareButton rest = new squareButton(152,264,202,300, "rest");
 squareButton place = new squareButton(710,225,760,300, "place");
 
 ArrayList <pentagram> pentagramas = new ArrayList <pentagram>();
+ArrayList <runtimeNote> runtimeNotes = new ArrayList <runtimeNote>();
+
 void settings() {
  size(screenWidth,screenHeight, P3D);
 }
@@ -102,16 +111,21 @@ void setup() {
   inString = null;
   
   blankTable = new Table();
-  blankTable.addColumn("id");
-  blankTable.addColumn("note");
-  blankTable.addColumn("duration");
-  blankTable.addColumn("octave");
-  
-  saveTable(blankTable, "data/NewMusicSheet.csv");
+  blankTable.addColumn("id", Table.STRING);
+  blankTable.addColumn("note", Table.STRING);
+  blankTable.addColumn("duration", Table.STRING);
+  blankTable.clearRows();
+ saveTable(blankTable, "data/NewMusicSheet.csv");
   
   treble = loadImage("gclef.png");
 }
 void draw() {
+  latestRowCount = blankTable.getRowCount();
+  
+  if(latestRowCount - runtimeNotes.size()  > 0) {
+    TableRow latestRow = blankTable.getRow(latestRowCount - 1 );
+   runtimeNotes.add(new runtimeNote(latestRow.getString("id"),latestRow.getString("note"),latestRow.getString("duration"),latestRowCount));
+  }
 background(255);
 
 fill(255);
@@ -119,7 +133,9 @@ drawNoteSelect();
 stroke(0);
 strokeWeight(1);
 fill(0);
-
+for (runtimeNote part : runtimeNotes) {
+  part.display();
+}
  
 image(treble, 50,100 - noteRadius * 2,noteRadius * 3,noteRadius *8);
 pentaButtons.showPentagram();pentaSelect.showPentagram();
@@ -130,12 +146,7 @@ note.show(); rest.show();place.show();
 
 text("x: "+mouseX+" y: "+mouseY, 10, 15);
 
-if (placedNote == true) {
- placedNote = false;
-   if(noteInterval >= 0 && intervalSelected >= 0 && checkEqualityString(pitchNoteSelected,"nil") == false && checkEqualityString(pitchNoteSelected,"notDeclared") == false) {
-     print("balz");
-   }
-}
+
 if (sendStringVar == true) {
   sendString(int(sendValue1),int(sendValue2),int(sendValue3));
 }
@@ -257,7 +268,7 @@ class squareButton {
  fill(255);
   if (mouseX > limitLeft && mouseY > limitUp && mouseX < limitRight && mouseY < limitDown) {
     stroke(100);
-    fill(255,0,0);
+    fill(0,255,255);
     if(mousePressed && mouseButton == LEFT)  {
      leftPressed = true;
      strokeWeight(2);
@@ -298,6 +309,8 @@ class squareButton {
       break;
       case "place":
       placedNote = true;
+      placeNoteTable();
+
       break;
      }
     }
@@ -322,6 +335,10 @@ if(intervalSelected >= 0) {
  if(buttonSelected == interval) {
   strokeWeight(3); 
  }
+}
+if(invalidPlaceRequest < 255 && interval == "place") {
+ fill(255,invalidPlaceRequest,invalidPlaceRequest);
+ invalidPlaceRequest = invalidPlaceRequest + 3;
 }
   rect(limitLeft,limitUp,limitRight - limitLeft,limitDown - limitUp);
       fill(0);
@@ -530,6 +547,55 @@ strokeWeight(1);
  fill(0);
 stroke(0);
 strokeWeight(1);
+}
+void placeNoteTable() {
+      if(noteInterval == 1) {
+       notePrint = pitchNoteSelected;
+      } else if(noteInterval == 2) {
+       notePrint = "R0" ;
+      }
+      
+      if(noteSelectTime >= 0 && noteSelectTime <= 5) {
+       durationPrint = str(noteSelectTime); 
+      } else if (noteSelectTime >= 6) {
+        durationPrint = str(noteSelectTime - 6);
+      }  
+      
+
+      
+      print(idPrint, notePrint, durationPrint); 
+           if(notePrint.length() == 2 && durationPrint.length() == 1 && (noteSelectTime >= 0)&& noteInterval >= 0 && intervalSelected >= 0 && checkEqualityString(pitchNoteSelected,"nil") == false && checkEqualityString(pitchNoteSelected,"notDeclared") == false) {
+       idLast = idSelected;
+       idSelected++;
+       TableRow newRow = blankTable.addRow();
+       newRow.setInt("id", blankTable.lastRowIndex());
+       newRow.setString("note", notePrint);
+       newRow.setString("duration", durationPrint);
+        saveTable(blankTable, "data/BlankMusicSheet.csv");
+             print("balz");
+   } else {
+     
+    invalidPlaceRequest = 0;
+    
+   }
+
+}
+class runtimeNote {
+  String id;
+  String note;
+  String duration;
+  int rowCount;
+  runtimeNote(String idT,String noteT, String durationT,int rowCountT) {
+ id = idT;
+ note = noteT;
+ duration = durationT;
+ rowCount = rowCountT;
+ //rowcount normally is just id + 1...
+  }
+  void display() {
+   println(id,note,duration); 
+   
+  }
 }
 boolean checkEqualityString(String a, String b) {
   if(a.equals(b)) {
