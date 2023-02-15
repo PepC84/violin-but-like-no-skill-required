@@ -72,15 +72,30 @@ String highlightNote = "nil";
 int idPrint = 1;
 String notePrint = "null";
 String durationPrint = "null";
+String accidentalPrint = "null";
 int idLast = -1;
 int idSelected = 0;
 int invalidPlaceRequest = 255;
 int latestRowCount;
+int currentRow;
 boolean noteSelectedForget = false;
 int notesPerPentagram = 7;
 int pentaId = 0;
 int pentaYsize = 170;
 boolean sharpSelected;
+String typingTempo = "";
+String savedTempo = "";
+String blink = " ";
+boolean tempoInput = false;
+long lastNote;
+double noteTime;
+int nextNote;
+boolean playPressed;
+int currentDurationInt;
+float millisDuration;
+float noteDuration;
+float quarterNote;
+
 noteButton noteG3 = new noteButton(50 + noteRadius * 4,93.5 + noteRadius * 7 ,   "G3");
 noteButton noteA3 = new noteButton(50 + noteRadius * 8,93.5 + noteRadius * 6.5,  "A3");
 noteButton noteB3 = new noteButton(50 + noteRadius * 12,93.5 + noteRadius * 6,   "B3");
@@ -115,6 +130,7 @@ squareButton rest = new squareButton(152,264,200,300, "rest");
 squareButton sharp = new squareButton(202,264,250,300, "sharp");
 squareButton place = new squareButton(710,225,760,300, "place");
 squareButton play = new squareButton(252,264,300,300, "play");
+squareButton bpm = new squareButton(302,264,350,300, "bpm:");
 
 ArrayList <pentagram> pentagramas = new ArrayList <pentagram>();
 ArrayList <runtimeNote> runtimeNotes = new ArrayList <runtimeNote>();
@@ -225,8 +241,17 @@ void setup() {
   
 }
 void draw() {
-  
-  
+
+if ( playPressed == true) {
+  playPressed();
+}
+  if(tempoInput == true) {
+    blink = " ";
+    if (frameCount % 15 != 0) { 
+        blink = "_";
+      }
+      
+  }
  
 //   println(runtimeNotes.size() + " " + (runtimeNotes.size() / notesPerPentagram) + " " + pentaId);
   latestRowCount = blankTable.getRowCount();
@@ -234,7 +259,7 @@ void draw() {
   if(latestRowCount - runtimeNotes.size()  > 0) 
      {
      TableRow latestRow = blankTable.getRow(latestRowCount - 1 );
-     runtimeNotes.add(new runtimeNote(latestRow.getString("id"),latestRow.getString("note"),latestRow.getString("duration"),latestRowCount,1));
+     runtimeNotes.add(new runtimeNote(latestRow.getString("id"),latestRow.getString("note"),latestRow.getString("duration"),latestRowCount,1,latestRow.getString("accidental")));
       }
   
       float runtimeNotesfloat = runtimeNotes.size();
@@ -253,6 +278,7 @@ drawNoteSelect();
 stroke(0);
 strokeWeight(1);
 fill(0);
+text(savedTempo,360,287);
 for (runtimeNote part : runtimeNotes) {
   part.display();
 }
@@ -262,7 +288,7 @@ pentaButtons.show();pentaSelect.show();//pentaTest.showPentagram();
 //CRAZY CODE
 noteG3.showNote();noteA3.showNote();noteB3.showNote();noteC4.showNote();noteD4.showNote();noteE4.showNote();noteF4.showNote();noteG4.showNote();noteA4.showNote();noteB4.showNote();noteC5.showNote();noteD5.showNote();noteE5.showNote();noteF5.showNote();noteG5.showNote();noteA5.showNote();noteB5.showNote();
 tempo0.show();tempo1.show(); tempo2.show();tempo3.show(); tempo4.show();tempo5.show(); 
-note.show(); rest.show();place.show();sharp.show();play.show();
+note.show(); rest.show();place.show();sharp.show();play.show();bpm.show();
 
 
 for (pentagram part : pentagramas) {
@@ -271,9 +297,8 @@ for (pentagram part : pentagramas) {
 text("x: "+mouseX+" y: "+mouseY, 10, 15);
 
 
-if (sendStringVar == true) {
-  sendString(int(sendValue1),int(sendValue2),int(sendValue3));
-}
+
+
 
 if (firstContact == true ) {
    text(" Arduino Contactado ", 10,90);
@@ -423,8 +448,8 @@ void fileSelected(File selection) {
 
 
 
-
-void sendString( int a, int b , int c) {
+/*
+void sendString( char a, int b , int c) {
   
   String sa = nf(a,2);
   String sb = nf(b,2);
@@ -461,6 +486,7 @@ if (firstContact == true)
     case 7:
  port.write(sc);
   break;
+  
     case 8:
   port.write(',');
   break;
@@ -477,7 +503,7 @@ if (firstContact == true)
   } 
     
  }
-
+*/
 void serialEvent(Serial port ) {
 inString = port.readString();
 if (inString != null) {
@@ -605,10 +631,18 @@ class squareButton {
       noteInterval = 1;
       break;
       case "sharp":
-      sharpSelected = true;
+      if(sharpSelected == true) {
+        sharpSelected = false;
+      } else {
+       sharpSelected = true; 
+      }
+      break;
+      case "bpm:" :
+      tempoInput = true;
       break;
       case "play":
-      
+      playPressed = true;
+      nextNote = 0;
       break;
       case "place":
       placedNote = true;
@@ -632,6 +666,9 @@ class squareButton {
          strokeWeight(3); 
       }
   }
+  if (sharpSelected == true && interval == "sharp") {
+   strokeWeight(3); 
+  }
 //}
 
 if(intervalSelected >= 0) {
@@ -644,6 +681,7 @@ if(invalidPlaceRequest < 255 && interval == "place") {
  invalidPlaceRequest = invalidPlaceRequest + 3;
 }
   rect(limitLeft,limitUp,limitRight - limitLeft,limitDown - limitUp);
+
       fill(0);
     stroke(0);
     strokeWeight(1);
@@ -654,6 +692,13 @@ if(invalidPlaceRequest < 255 && interval == "place") {
      spaceFix = 0; 
     }
     text(interval,limitLeft + (limitRight - limitLeft)/2 - spaceFix,limitUp + (limitDown - limitUp)/2 + (limitDown - limitUp)/8);
+    
+      if(tempoInput == true) {
+        fill(255);
+    rect(302,264,350-302,300-264); 
+    fill(0);
+    text(typingTempo + blink,317,287);
+  }
  }    
 }
 class pentagram {
@@ -886,9 +931,14 @@ void placeNoteTable() {
         durationPrint = str(noteSelectTime - 6);
       }  
       
+      if(sharpSelected == true) {
+        accidentalPrint = str(1); 
+      } else {
+        accidentalPrint = str(0); 
+      }
 
       
-      print(idPrint, notePrint, durationPrint); 
+      print(idPrint, notePrint, durationPrint,accidentalPrint); 
            if(notePrint.length() == 2 && durationPrint.length() == 1 && (noteSelectTime >= 0)&& noteInterval >= 0 && intervalSelected >= 0 && checkEqualityString(pitchNoteSelected,"nil") == false && checkEqualityString(pitchNoteSelected,"notDeclared") == false) {
        idLast = idSelected;
        idSelected++;
@@ -896,6 +946,7 @@ void placeNoteTable() {
        newRow.setInt("id", blankTable.lastRowIndex());
        newRow.setString("note", notePrint);
        newRow.setString("duration", durationPrint);
+       newRow.setString("accidental", accidentalPrint);
         saveTable(blankTable, "data/BlankMusicSheet.csv");
              print("balz");
              noteSelectedForget = true; 
@@ -912,30 +963,178 @@ class runtimeNote {
   String duration;
   int rowCount;
   int pentaY;
-  runtimeNote(String idT,String noteT, String durationT,int rowCountT, int pentaYT) {
+  String accidental;
+  runtimeNote(String idT,String noteT, String durationT,int rowCountT, int pentaYT,String accidentalT) {
  id = idT;
  note = noteT;
  duration = durationT;
  rowCount = rowCountT;
  pentaY = pentaYT;
+ accidental = accidentalT;
  //rowcount normally is just id + 1...
   }
   void display() {
     int idtimes = int(id) *10;
-   println(id,note,duration); 
-   print("bolas");
+ //  println(id,note,duration); 
    
-   text(id + " "  + note + "  " + duration ,1050, float(idtimes + 10));
+   text(id + " "  + note + "  " + duration + " " + accidental,1050, float(idtimes + 10));
    if(idtimes >= 720) {
-    text(id + " "  + note + "  " + duration ,1100, float(idtimes + 10 - 720));
+    text(id + " "  + note + "  " + duration + " " + accidental,1105, float(idtimes + 10 - 720));
    }
       if(idtimes >= 1440) {
-    text(id + " "  + note + "  " + duration ,1150, float(idtimes + 10 - 1440));
+    text(id + " "  + note + "  " + duration + " " + accidental,1160, float(idtimes + 10 - 1440));
    }
          if(idtimes >= 2160) {
-    text(id + " "  + note + "  " + duration ,1200, float(idtimes + 10 - 2160));
+    text(id + " "  + note + "  " + duration + " " + accidental,1220, float(idtimes + 10 - 2160));
    }
   }
+}
+void playPressed() {
+    if ( millis() - lastNote > noteTime ) 
+   {
+       
+       lastNote = millis();
+
+     TableRow currentRow = blankTable.getRow(nextNote);
+  if(nextNote < runtimeNotes.size()) 
+     {
+  String  currentId = currentRow.getString("id");
+  String  currentNote = currentRow.getString("note");
+  String  currentDuration = currentRow.getString("duration");
+  String  currentAccidental = currentRow.getString("accidental");
+   currentDurationInt = int(currentDuration);
+   float twotothe = 2^currentDurationInt;
+   
+   noteDuration = (4/(twotothe));
+   quarterNote = 60/float(savedTempo);
+   noteTime = quarterNote * noteDuration * 1000;
+         switch(currentNote)
+   {  
+      case "R0":
+      sendValue1 = 35;
+      break;
+      case "A4":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 32; 
+      } else {
+       sendValue1 = 13; 
+       port.write('a');
+      }
+      break;
+      case "C5":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 1; 
+      } else {
+       sendValue1 = 2; 
+      }
+      break;
+      case "G5":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 3; 
+      } else {
+       sendValue1 = 12; 
+      }
+      break;
+      case "F5":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 4; 
+      } else {
+       sendValue1 = 6; 
+      }
+      break;
+      case "B4":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 7; 
+      } else {
+       sendValue1 = 7; 
+      }
+      break;
+      case "G3":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 28; 
+      } else {
+       sendValue1 = 8; 
+      }
+      break;
+      case "A5":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 5; 
+      } else {
+       sendValue1 = 9; 
+      }
+      break;
+      case "D5":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 10; 
+      } else {
+       sendValue1 = 15; 
+      }
+      break;
+       case "D4":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 30; 
+      } else {
+       sendValue1 = 14; 
+      }
+      break;
+      case "E4":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 21; 
+      } else {
+       sendValue1 = 21; 
+      }
+      break;
+      case "E5":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 11; 
+      } else {
+       sendValue1 = 11; 
+      }
+      break;
+      case "G4":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 19; 
+      } else {
+       sendValue1 = 16; 
+      }
+      break;
+      case "C4":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 17; 
+      } else {
+       sendValue1 = 26; 
+      }
+      break;
+      case "A3":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 18; 
+      } else {
+       sendValue1 = 23; 
+      }
+      break;
+      case "B3":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 24; 
+      } else {
+       sendValue1 = 24; 
+      }
+      break;
+      case "F4":
+      if(int(currentAccidental) == 1) {
+       sendValue1 = 31; 
+      } else {
+       sendValue1 = 25; 
+      }
+      break;
+    }
+  } else {
+  sendValue1 = 0;
+  }
+  
+     nextNote = nextNote + 1;
+   }
+    //sendString(int(sendValue1),int(sendValue2),int(sendValue3));
+    print(sendValue1);
 }
 boolean checkEqualityString(String a, String b) {
   if(a.equals(b)) {
@@ -944,3 +1143,29 @@ boolean checkEqualityString(String a, String b) {
    return false; 
   }
 }
+void keyPressed() {
+
+  
+  // If the 'return' [ENTER] key is pressed, save the String and clear it
+  if (key == '\n' )                                               //  variable 'key' no se declara y es donde se guarda el codigo de tecla presionada
+  {
+    savedTempo = typingTempo; 
+    tempoInput = false;
+     typingTempo = "";                                  
+     blink =" ";                                     
+  } else {
+         if ( ( ( key >= '0' && key <= '9' ) || ( key == '.') ) && ( typingTempo.length() < 3 ) ) 
+            {
+              typingTempo =  typingTempo + key;
+            }     
+
+        if (keyCode == BACKSPACE)
+            {
+              if ( typingTempo.length() > 0 )     //   > 0  significa ya tecleo al menos un caracter
+                   {
+                       typingTempo =     typingTempo.substring( 0 ,   typingTempo.length() - 1 );       //  por cada BACKSPACE se borra un codigo de entrada
+                    }
+             }
+
+         }
+   } 
