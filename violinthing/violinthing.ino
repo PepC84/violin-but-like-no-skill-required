@@ -29,14 +29,15 @@
 --  28  GPA7  23 A3
 --  1   GPB0  24 B3
 --  2   GPB1  25 F4
---  3   GPB2  26 C3
+--  3   GPB2  26 C4
 --  4   GPB3  27 
 --  5   GPB4  28 G#3
 --  6   GPB5  29 
---  7   GPB6  30 D#3
+--  7   GPB6  30 D#4
 --  8   GPB7  31 F#4
 */ 
 
+// R0 (rest) is 35
 
 // h,000,000,000,e ps send format
 // j,000,000,000,r arduino send format
@@ -44,6 +45,7 @@
 SoftwareSerial HC06(0,1);
 char data;
 String dataString = "";
+
 #include <Adafruit_MCP23X17.h>
 #include <Wire.h>
 
@@ -62,6 +64,9 @@ String  value2String;
 String  value3String;
 
 long timeStampContact = millis();
+
+int value1old;
+
 void setup() {
    Serial.begin(9600);
    HC06.begin(9600);
@@ -79,18 +84,159 @@ for(int i=0;i<16;i++) {
 }
 
 setLEDsLow(); 
-//establishContact();
+
+establishContact();
+
 }
 
 void loop() {
 
-mcp2.digitalWrite(15,HIGH);
-
+setLEDsLow();
  
+
+
+switch(data){
+case 'a':
+mcp1.digitalWrite(0,HIGH);
+mcp1.digitalWrite(13,HIGH);
+break;
+case 1:
+mcp1.digitalWrite(13,HIGH);
+mcp1.digitalWrite(7,HIGH);
+mcp1.digitalWrite(1,HIGH);
+break;
+case 2:
+mcp1.digitalWrite(13,HIGH);
+mcp1.digitalWrite(7,HIGH);
+mcp1.digitalWrite(2,HIGH);
+break;
+case 3:
+mcp1.digitalWrite(11,HIGH);
+mcp1.digitalWrite(4,HIGH);
+mcp1.digitalWrite(3,HIGH);
+break;
+case 4:
+mcp1.digitalWrite(11,HIGH);
+mcp1.digitalWrite(4,HIGH);
+break;
+case 5:
+mcp1.digitalWrite(11,HIGH);
+mcp1.digitalWrite(4,HIGH);
+mcp1.digitalWrite(3,HIGH);
+mcp1.digitalWrite(5,HIGH);
+break;
+case 6:
+mcp1.digitalWrite(11,HIGH);
+mcp1.digitalWrite(6,HIGH);
+break;
+case 7:
+mcp1.digitalWrite(13,HIGH);
+mcp1.digitalWrite(7,HIGH);
+break;
+case 8:
+mcp1.digitalWrite(8,HIGH);
+break; 
+case 9:
+mcp1.digitalWrite(11,HIGH);
+mcp1.digitalWrite(4,HIGH);
+mcp1.digitalWrite(3,HIGH);
+mcp1.digitalWrite(9,HIGH);
+break;
+case 10:
+mcp1.digitalWrite(13,HIGH);
+mcp1.digitalWrite(7,HIGH);
+mcp1.digitalWrite(1,HIGH);
+mcp1.digitalWrite(10,HIGH);
+break;
+case 11: 
+mcp1.digitalWrite(11,HIGH);
+break;
+case 12:
+mcp1.digitalWrite(11,HIGH);
+mcp1.digitalWrite(4,HIGH);
+mcp1.digitalWrite(12,HIGH);
+break;
+case 13:
+mcp1.digitalWrite(13,HIGH);
+break;
+case 14:
+mcp1.digitalWrite(14,HIGH);
+break;
+case 15:
+mcp1.digitalWrite(13,HIGH);
+mcp1.digitalWrite(7,HIGH);
+mcp1.digitalWrite(1,HIGH);
+mcp1.digitalWrite(15,HIGH);
+break;
+case 16:
+mcp1.digitalWrite(14,HIGH);
+mcp2.digitalWrite(5,HIGH);
+mcp2.digitalWrite(15,HIGH);
+mcp2.digitalWrite(0,HIGH);
+break;
+case 17:
+mcp1.digitalWrite(8,HIGH);
+mcp2.digitalWrite(7,HIGH);
+mcp2.digitalWrite(8,HIGH);
+mcp2.digitalWrite(1,HIGH);
+break;
+case 18:
+mcp1.digitalWrite(8,HIGH);
+mcp2.digitalWrite(2,HIGH);
+break;
+case 19:
+mcp1.digitalWrite(14,HIGH);
+mcp2.digitalWrite(5,HIGH);
+mcp2.digitalWrite(15,HIGH);
+mcp2.digitalWrite(3,HIGH);
+break;
+case 21:
+mcp1.digitalWrite(8,HIGH);
+mcp2.digitalWrite(5,HIGH);
+break;
+case 23:
+mcp1.digitalWrite(8,HIGH);
+mcp2.digitalWrite(7,HIGH);
+break;
+case 24:
+mcp1.digitalWrite(8,HIGH);
+mcp2.digitalWrite(7,HIGH);
+mcp2.digitalWrite(8,HIGH);
+break; 
+case 25:
+mcp1.digitalWrite(14,HIGH);
+mcp2.digitalWrite(5,HIGH);
+mcp2.digitalWrite(9,HIGH);
+break;
+case 26:
+mcp1.digitalWrite(8,HIGH);
+mcp2.digitalWrite(7,HIGH);
+mcp2.digitalWrite(8,HIGH);
+mcp2.digitalWrite(10,HIGH);
+break;
+case 28:
+mcp1.digitalWrite(8,HIGH);
+mcp2.digitalWrite(12,HIGH);
+break;
+case 30:
+mcp1.digitalWrite(14,HIGH);
+mcp2.digitalWrite(14,HIGH);
+break;
+case 31:
+mcp1.digitalWrite(14,HIGH);
+mcp2.digitalWrite(5,HIGH);
+mcp2.digitalWrite(15,HIGH);
+break;
+}
+  if(HC06.available() > 0) {
+    data = HC06.read();
+  }
+
+ /*
   if (HC06.available() > 0) {
 
    //   HC06.write('C');
-    inString = HC06.readStringUntil('e');
+    inString = HC06.readStringUntil("e");
   if(inString != "null" )
     { 
 
@@ -119,19 +265,19 @@ mcp2.digitalWrite(15,HIGH);
     }
     }
 
-
+*/
 }
-/*void establishContact() {
+void establishContact() {
 
  while (HC06.available() <= 0) {
-  if (millis() - timeStampContact > 3000)
+  if (millis() - timeStampContact > 1500)
  {
       HC06.write('A');   // send a capital A
     timeStampContact = millis();
   }
  }
 }
-*/
+
 void setLEDsLow() {
      for(int i=0;i<16;i++) {
 mcp1.digitalWrite(i,LOW);
@@ -141,5 +287,3 @@ mcp2.digitalWrite(i,LOW);
   }
  }
 }
-
-
